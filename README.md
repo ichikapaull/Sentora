@@ -45,7 +45,7 @@ Sentora is an open-source Linux server monitoring and auto alert system that tra
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sentora.git
+   git clone https://github.com/ichikapaull/sentora.git
    cd sentora
    ```
 
@@ -254,7 +254,7 @@ The system is containerized using Docker and can be deployed using Docker Compos
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sentora.git
+   git clone https://github.com/ichikapaull/sentora.git
    cd sentora
    ```
 
