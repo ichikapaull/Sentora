@@ -1,0 +1,60 @@
+# Sentora Monitoring Agent Configuration
+
+# Agent identification
+agent:
+  name: "server1"  # Unique name for this server
+  interval: 60     # Data collection interval in seconds
+
+# Central server connection
+server:
+  url: "http://localhost:8000/data"  # API endpoint for data submission
+  api_key: "your_api_key_here"       # Authentication key
+
+# Monitoring configuration
+monitoring:
+  # CPU monitoring
+  cpu:
+    enabled: true
+    threshold: 80  # Alert when CPU usage exceeds this percentage
+
+  # RAM monitoring
+  ram:
+    enabled: true
+    threshold: 85  # Alert when RAM usage exceeds this percentage
+
+  # Disk monitoring
+  disk:
+    enabled: true
+    paths:
+      - "/"        # Monitor root partition
+      - "/home"    # Monitor home partition (if separate)
+    threshold: 90  # Alert when disk usage exceeds this percentage
+
+  # Network monitoring
+  network:
+    enabled: true
+    interfaces:
+      - "eth0"     # Network interface to monitor
+    threshold:
+      in: 100000   # Incoming traffic threshold in KB/s
+      out: 100000  # Outgoing traffic threshold in KB/s
+
+  # Service monitoring
+  services:
+    enabled: true
+    list:
+      - "nginx"
+      - "postgresql"
+      - "mongodb"
+      - "redis"
+
+  # SSH brute force detection
+  ssh:
+    enabled: true
+    log_path: "/var/log/auth.log"
+    threshold: 5   # Number of failed attempts to trigger alert
+
+# Logging configuration
+logging:
+  level: "INFO"    # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  file: "/var/log/sentora-agent.log"

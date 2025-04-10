@@ -1,0 +1,110 @@
+version: '3'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:latest
+    container_name: sentora-mongodb
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+
+  # Redis for Celery
+  redis:
+    image: redis:latest
+    container_name: sentora-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Central server
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: sentora-server
+    depends_on:
+      - mongodb
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=sentora
+      - REDIS_URI=redis://redis:6379/0
+      - API_KEYS=your_api_key_here,another_api_key
+      - ALERT_EMAIL_ENABLED=false
+      - ALERT_TELEGRAM_ENABLED=false
+      - ALERT_DISCORD_ENABLED=false
+    restart: unless-stopped
+
+  # Celery worker
+  worker:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: sentora-worker
+    depends_on:
+      - server
+      - mongodb
+      - redis
+    command: celery -A server worker --loglevel=info
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=sentora
+      - REDIS_URI=redis://redis:6379/0
+    restart: unless-stopped
+
+  # Celery beat for scheduled tasks
+  beat:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: sentora-beat
+    depends_on:
+      - server
+      - mongodb
+      - redis
+    command: celery -A server beat --loglevel=info
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=sentora
+      - REDIS_URI=redis://redis:6379/0
+    restart: unless-stopped
+
+  # Web dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: sentora-dashboard
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    restart: unless-stopped
+
+  # Example agent (can be deployed separately on monitored servers)
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    container_name: sentora-agent
+    depends_on:
+      - server
+    environment:
+      - SERVER_URL=http://server:8000/data
+      - API_KEY=your_api_key_here
+    volumes:
+      - /var/log:/var/log:ro
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  redis_data:
